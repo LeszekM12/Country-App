@@ -85,7 +85,24 @@ const getCountryAndNeighbour = (country) => {
   });
 };
 
-getCountryAndNeighbour('poland');
+// getCountryAndNeighbour('poland');
+
+const getCountry = (country) => {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then(res => res.json())
+    .then(data => {
+      renderCountry(data[0]);
+      const neighbour = data[0].borders?.[0];
+
+      if (!neighbour) return;
+
+      return fetch(`https://restcountries.com/v2/alpha/${neighbour}`);
+    })
+    .then(res => res.json())
+    .then(data => renderCountry(data, 'neighbour'));
+}
+getCountry('poland')
+
 
 
 
