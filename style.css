@@ -14,7 +14,6 @@ body {
   color: #555;
   background-color: #f7f7f7;
   min-height: 100vh;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,43 +23,30 @@ body {
   display: flex;
   flex-flow: column;
   align-items: center;
+  padding: 4rem 2rem;
 }
 
+/* === COUNTRIES WRAPPER === */
 .countries {
-  /* margin-bottom: 8rem; */
   display: flex;
-
+  align-items: flex-start;
+  gap: 4rem;
   font-size: 2rem;
   opacity: 0;
   transition: opacity 1s;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 4rem;
 }
 
+/* === MAIN COUNTRY CARD === */
 .country {
   background-color: #fff;
   box-shadow: 0 2rem 5rem 1rem rgba(0, 0, 0, 0.1);
   font-size: 1.8rem;
   width: 30rem;
   border-radius: 0.7rem;
-  margin: 0 3rem;
-  /* overflow: hidden; */
-}
-
-.neighbour::before {
-  content: 'Neighbour country';
-  width: 100%;
-  position: absolute;
-  top: -4rem;
-
-  text-align: center;
-  font-size: 1.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #888;
-}
-
-.neighbour {
-  transform: scale(0.8) translateY(1rem);
-  margin-left: 0;
+  flex-shrink: 0;
 }
 
 .country__img {
@@ -70,6 +56,7 @@ body {
   background-color: #eee;
   border-top-left-radius: 0.7rem;
   border-top-right-radius: 0.7rem;
+  display: block;
 }
 
 .country__data {
@@ -98,14 +85,112 @@ body {
   font-size: 2.4rem;
 }
 
+/* === NEIGHBOURS SECTION === */
+.neighbours-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.neighbours-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 0.08em;
+}
+
+.neighbours-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* === NEIGHBOUR CARD (small) === */
+.neighbour {
+  width: 12rem;
+  font-size: 1.4rem;
+  box-shadow: 0 1rem 3rem 0.5rem rgba(0, 0, 0, 0.08);
+  margin: 0;
+}
+
+.neighbour .country__img {
+  width: 12rem;
+  height: 7rem;
+  border-top-left-radius: 0.7rem;
+  border-top-right-radius: 0.7rem;
+}
+
+.neighbour .country__data {
+  padding: 0.8rem 1rem 1rem 1rem;
+}
+
+.neighbour .country__name {
+  font-size: 1.3rem;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.neighbour .country__region {
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.neighbour .country__row {
+  font-size: 1.1rem;
+}
+
+.neighbour .country__row span {
+  font-size: 1.4rem;
+  margin-right: 0.6rem;
+}
+
+/* === SEARCH BAR === */
+.search-bar {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.search-bar input {
+  font-size: 1.6rem;
+  padding: 1.2rem 1.8rem;
+  border: 1px solid #ccc;
+  border-radius: 0.7rem;
+  outline: none;
+  width: 24rem;
+}
+
+.search-bar input:focus {
+  border-color: orangered;
+}
+
+/* === BUTTONS === */
 .btn-country {
   border: none;
-  font-size: 2rem;
-  padding: 2rem 5rem;
+  font-size: 1.8rem;
+  padding: 1.2rem 3rem;
   border-radius: 0.7rem;
   color: white;
   background-color: orangered;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-country:hover {
+  background-color: #e03000;
+}
+
+/* === ERROR === */
+.error {
+  color: orangered;
+  font-size: 1.6rem;
+  margin-top: 2rem;
 }
 
 .images {
