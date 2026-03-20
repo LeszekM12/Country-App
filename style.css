@@ -112,6 +112,12 @@ body {
   font-size: 1.4rem;
   box-shadow: 0 1rem 3rem 0.5rem rgba(0, 0, 0, 0.08);
   margin: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.neighbour:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 1.5rem 4rem 0.5rem rgba(0, 0, 0, 0.15);
 }
 
 .neighbour .country__img {

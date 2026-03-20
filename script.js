@@ -2,15 +2,21 @@
 
 const countriesContainer = document.querySelector('.countries');
 
-
+// ============================================================
 // RENDER
+// ============================================================
+
 const renderCountry = (data, className = '') => {
   const lang = Object.values(data.languages || {})[0] ?? '—';
   const cur = Object.values(data.currencies || {})[0]?.name ?? '—';
   const pop = (+data.population / 1000000).toFixed(2);
 
+  const clickHandler = className === 'neighbour'
+    ? `onclick="getCountry('${data.name.common}')" style="cursor:pointer;"`
+    : '';
+
   const html = `
-    <article class="country ${className}">
+    <article class="country ${className}" ${clickHandler}>
       <img class="country__img" src="${data.flags?.svg ?? data.flags?.png}" />
       <div class="country__data">
         <h3 class="country__name">${data.name.common}</h3>
@@ -40,8 +46,10 @@ const renderError = (msg) => {
   countriesContainer.insertAdjacentHTML('beforeend', `<p class="error">${msg}</p>`);
 };
 
-
+// ============================================================
 // FETCH HELPERS
+// ============================================================
+
 const getJSON = (url, errorMsg = 'Something went wrong') => {
   return fetch(url).then(res => {
     if (!res.ok) throw new Error(`${errorMsg} (${res.status})`);
@@ -49,12 +57,18 @@ const getJSON = (url, errorMsg = 'Something went wrong') => {
   });
 };
 
-
+// ============================================================
 // GET COUNTRY + ALL NEIGHBOURS
+// ============================================================
+
 const getCountry = (country) => {
   countriesContainer.innerHTML = '';
 
-  getJSON(`https://restcountries.com/v3.1/translation/${country}`, 'Country not found')
+  // Najpierw szukaj po nazwie angielskiej, jeśli 404 to po tłumaczeniu (polskie nazwy itp.)
+  getJSON(`https://restcountries.com/v3.1/name/${country}`, 'Country not found')
+    .catch(() =>
+      getJSON(`https://restcountries.com/v3.1/translation/${country}`, 'Country not found')
+    )
     .then(data => {
       renderCountry(data[0]);
       const neighbours = data[0].borders;
@@ -79,8 +93,10 @@ const getCountry = (country) => {
     });
 };
 
-
+// ============================================================
 // WHERE AM I
+// ============================================================
+
 const whereAmI = () => {
   return fetch('https://api.bigdatacloud.net/data/reverse-geocode-client')
     .then(res => {
@@ -94,8 +110,10 @@ const whereAmI = () => {
     .catch(err => console.error(err.message));
 };
 
-
+// ============================================================
 // BUTTONS
+// ============================================================
+
 document.getElementById('btn-search').addEventListener('click', () => {
   const country = document.getElementById('country-input').value.trim();
   if (country) getCountry(country);
