@@ -121,6 +121,20 @@ const getCountry = (country) => {
     })
 }
 
-  btn.addEventListener('click', (event) => {
-    getCountry('au');
+btn.addEventListener('click', (e) => {
+  whereAmI().then(countryName => getCountry(countryName));
   });
+
+const whereAmI = (lat, lng) => {
+  return fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`)
+    .then(res => {
+      if (!res.ok) throw new Error(`Problem with geocoding ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      console.log(data);
+      console.log(`You are in ${data.city} ${data.countryName}`);
+      return data.countryName;
+    })
+    .catch(err => console.error(err.message));
+};
