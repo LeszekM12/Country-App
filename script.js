@@ -1,140 +1,115 @@
 'use strict';
 
-const btn = document.querySelector('.btn-country');
 const countriesContainer = document.querySelector('.countries');
 
+
+// RENDER
 const renderCountry = (data, className = '') => {
+  const lang = Object.values(data.languages || {})[0] ?? '—';
+  const cur = Object.values(data.currencies || {})[0]?.name ?? '—';
+  const pop = (+data.population / 1000000).toFixed(2);
+
   const html = `
-     <article class="country ${className}">
-          <img class="country__img" src="${data.flag}" />
-          <div class="country__data">
-            <h3 class="country__name">${data.name}</h3>
-            <h4 class="country__region">${data.region}</h4>
-            <p class="country__row"><span>👫</span>${(+data.population / 1000000).toFixed(2)}</p>
-            <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
-            <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
-          </div>
-        </article>
+    <article class="country ${className}">
+      <img class="country__img" src="${data.flags?.svg ?? data.flags?.png}" />
+      <div class="country__data">
+        <h3 class="country__name">${data.name.common}</h3>
+        <h4 class="country__region">${data.region}</h4>
+        <p class="country__row"><span>👫</span>${pop}M</p>
+        <p class="country__row"><span>🗣️</span>${lang}</p>
+        <p class="country__row"><span>💰</span>${cur}</p>
+      </div>
+    </article>
   `;
 
-  countriesContainer.insertAdjacentHTML('beforeend', html);
-  // countriesContainer.style.opacity = '1';
+  if (className === 'neighbour') {
+    let wrapper = document.querySelector('.neighbours-wrapper');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.className = 'neighbours-wrapper';
+      wrapper.innerHTML = '<p class="neighbours-label">Neighbour countries</p><div class="neighbours-grid"></div>';
+      countriesContainer.appendChild(wrapper);
+    }
+    wrapper.querySelector('.neighbours-grid').insertAdjacentHTML('beforeend', html);
+  } else {
+    countriesContainer.insertAdjacentHTML('beforeend', html);
+  }
 };
 
 const renderError = (msg) => {
-  countriesContainer.insertAdjacentText('beforeend', msg);
-  // countriesContainer.style.opacity = '1';
+  countriesContainer.insertAdjacentHTML('beforeend', `<p class="error">${msg}</p>`);
 };
 
 
-// https://restcountries.com/v2/name/portugal
-// https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}
-
-///////////////////////////////////////
-
-const getCountryData = (country) => {
-  const request = new XMLHttpRequest();
-  request.open('GET', `https://restcountries.com/v2/name/${country}`);
-  request.send();
-
-  request.addEventListener('load', () => {
-    const [data] = JSON.parse(request.responseText);
-    console.log(data);
-
-    const html = `
-     <article class="country">
-          <img class="country__img" src="${data.flag}" />
-          <div class="country__data">
-            <h3 class="country__name">${data.name}</h3>
-            <h4 class="country__region">${data.region}</h4>
-            <p class="country__row"><span>👫</span>${(+data.population / 1000000).toFixed(2)}</p>
-            <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
-            <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
-          </div>
-        </article>
-  `;
-
-    countriesContainer.insertAdjacentHTML('beforeend', html);
-    countriesContainer.style.opacity = '1';
-  });
-};
-
-
-const getCountryAndNeighbour = (country) => {
-  // AJAX call country 1
-  const request = new XMLHttpRequest();
-  request.open('GET', `https://restcountries.com/v2/name/${country}`);
-  request.send();
-
-  request.addEventListener('load', () => {
-    const [data] = JSON.parse(request.responseText);
-    console.log(data);
-    // Render country 1
-    renderCountry(data);
-
-    // Get neighbour country (2)
-    const neighbour = data.borders?.[1]
-
-    if(!neighbour) return;
-
-    // AJAX call country 2
-    const request2 = new XMLHttpRequest();
-    request2.open('GET', `https://restcountries.com/v2/alpha/${neighbour}`);
-    request2.send();
-
-    request2.addEventListener('load', () => {
-      const data2 = JSON.parse(request2.responseText);
-      console.log(data2);
-      renderCountry(data2, 'neighbour');
-    })
-  });
-};
-
-// getCountryAndNeighbour('poland');
-
-const getJSON = (url, errorMsg = 'Something went wrong', country) => {
+// FETCH HELPERS
+const getJSON = (url, errorMsg = 'Something went wrong') => {
   return fetch(url).then(res => {
-
-    if (!res.ok) throw new Error(`${errorMsg} ${country}`);
-
+    if (!res.ok) throw new Error(`${errorMsg} (${res.status})`);
     return res.json();
   });
-}
+};
 
+
+// GET COUNTRY + ALL NEIGHBOURS
 const getCountry = (country) => {
-  getJSON(`https://restcountries.com/v2/name/${country}`, 'Country not found', country)
+  countriesContainer.innerHTML = '';
+
+  getJSON(`https://restcountries.com/v3.1/translation/${country}`, 'Country not found')
     .then(data => {
       renderCountry(data[0]);
-      const neighbour = data[0].borders?.[0];
+      const neighbours = data[0].borders;
 
-      if (!neighbour) throw new Error('No neighbour found!');
+      if (!neighbours || neighbours.length === 0) throw new Error('No neighbours found!');
 
-      return getJSON(`https://restcountries.com/v2/alpha/${neighbour}`, 'Country not found');
+      return Promise.all(
+        neighbours.map(code =>
+          getJSON(`https://restcountries.com/v3.1/alpha/${code}`, 'Country not found')
+        )
+      );
     })
-    .then(data => renderCountry(data, 'neighbour'))
+    .then(neighboursData => {
+      neighboursData.forEach(data => renderCountry(data[0], 'neighbour'));
+    })
     .catch(err => {
       console.error(`${err} 😤`);
       renderError(`Something went wrong: ${err.message}. Try again!`);
     })
     .finally(() => {
       countriesContainer.style.opacity = '1';
-    })
-}
+    });
+};
 
-btn.addEventListener('click', (e) => {
-  whereAmI().then(countryName => getCountry(countryName));
-  });
 
-const whereAmI = (lat, lng) => {
-  return fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}`)
+// WHERE AM I
+const whereAmI = () => {
+  return fetch('https://api.bigdatacloud.net/data/reverse-geocode-client')
     .then(res => {
       if (!res.ok) throw new Error(`Problem with geocoding ${res.status}`);
       return res.json();
     })
     .then(data => {
-      console.log(data);
-      console.log(`You are in ${data.city} ${data.countryName}`);
+      console.log(`You are in ${data.city}, ${data.countryName}`);
       return data.countryName;
     })
     .catch(err => console.error(err.message));
 };
+
+
+// BUTTONS
+document.getElementById('btn-search').addEventListener('click', () => {
+  const country = document.getElementById('country-input').value.trim();
+  if (country) getCountry(country);
+});
+
+document.getElementById('country-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const country = e.target.value.trim();
+    if (country) getCountry(country);
+  }
+});
+
+document.getElementById('btn-location').addEventListener('click', () => {
+  whereAmI().then(countryName => {
+    if (countryName) getCountry(countryName);
+  });
+});
