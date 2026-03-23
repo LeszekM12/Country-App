@@ -1,4 +1,4 @@
-# 🌍 Where Am I? — Country Explorer
+# 🌍 Where Am I? - Country Explorer
 
 > A vanilla JavaScript app that detects your location and displays country info with all neighbouring countries — fetched live from a REST API.
 
