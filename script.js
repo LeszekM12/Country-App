@@ -42,6 +42,24 @@ const renderCountry = (data, className = '') => {
   }
 };
 
+const renderNoNeighbours = (countryName) => {
+  const html = `
+    <div class="no-neighbours">
+      <span class="no-neighbours__icon">🏝️</span>
+      <p class="no-neighbours__title">Island nation</p>
+      <p class="no-neighbours__text">${countryName} has no neighbouring countries — it's surrounded by water.</p>
+    </div>
+  `;
+  let wrapper = document.querySelector('.neighbours-wrapper');
+  if (!wrapper) {
+    wrapper = document.createElement('div');
+    wrapper.className = 'neighbours-wrapper';
+    wrapper.innerHTML = '<p class="neighbours-label">Neighbour countries</p>';
+    countriesContainer.appendChild(wrapper);
+  }
+  wrapper.insertAdjacentHTML('beforeend', html);
+};
+
 const renderError = (msg) => {
   countriesContainer.insertAdjacentHTML('beforeend', `<p class="error">${msg}</p>`);
 };
@@ -64,7 +82,6 @@ const getJSON = (url, errorMsg = 'Something went wrong') => {
 const getCountry = (country) => {
   countriesContainer.innerHTML = '';
 
-  // Najpierw szukaj po nazwie angielskiej, jeśli 404 to po tłumaczeniu (polskie nazwy itp.)
   getJSON(`https://restcountries.com/v3.1/name/${country}`, 'Country not found')
     .catch(() =>
       getJSON(`https://restcountries.com/v3.1/translation/${country}`, 'Country not found')
@@ -73,7 +90,10 @@ const getCountry = (country) => {
       renderCountry(data[0]);
       const neighbours = data[0].borders;
 
-      if (!neighbours || neighbours.length === 0) throw new Error('No neighbours found!');
+      if (!neighbours || neighbours.length === 0) {
+        renderNoNeighbours(data[0].name.common);
+        return; // brak sąsiadów — kończymy, bez rzucania błędu
+      }
 
       return Promise.all(
         neighbours.map(code =>
@@ -82,6 +102,7 @@ const getCountry = (country) => {
       );
     })
     .then(neighboursData => {
+      if (!neighboursData) return; // island nation — już obsłużone
       neighboursData.forEach(data => renderCountry(data[0], 'neighbour'));
     })
     .catch(err => {
